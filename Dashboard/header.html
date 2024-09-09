@@ -1,0 +1,42 @@
+<!-- header.html -->
+<div id="header" class="header-container">
+    <div class="sidebar-company-info">
+        <h4 class="sidebar-company-name">Book A Rent House</h4>
+    </div>
+    <div class="header-content">
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="search-container">
+            <i class="fa fa-search search-icon"></i>
+            <input type="text" placeholder="Search projects" class="search-input" />
+        </div>
+
+        <div class="actions-container">
+            <i class="fa fa-power-off power-icon"></i>
+        </div>
+    </div>
+</div>
+<script>
+   function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const header = document.getElementById('header');
+
+    if (sidebar.classList.contains('closed')) {
+        sidebar.classList.remove('closed');
+        sidebar.classList.add('open');
+        mainContent.classList.remove('expanded');
+        header.classList.remove('expanded');
+    } else {
+        sidebar.classList.remove('open');
+        sidebar.classList.add('closed');
+        mainContent.classList.add('expanded');
+        header.classList.add('expanded');
+    }
+}
+
+</script>

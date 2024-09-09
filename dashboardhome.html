@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book A Rent House</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="./Dashboard/dashboard.css">
+</head>
+<body>
+<div id="header" class="header-container">
+    <div class="sidebar-company-info">
+        <h4 class="sidebar-company-name">Book A Rent House</h4>
+    </div>
+    <div class="header-content">
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="search-container">
+            <i class="fa fa-search search-icon"></i>
+            <input type="text" placeholder="Search projects" class="search-input" />
+        </div>
+
+        <div class="actions-container">
+            <i class="fa fa-power-off power-icon"></i>
+        </div>
+    </div>
+</div>
+<div class="container-fluid page-container">
+    <div id="sidebar" class="sidebar-container open">
+        <div class="sidebar-menu">
+            <div class="menu-item" onclick="navigate('dashboardhome.html')">
+                <i class="fa fa-tachometer-alt"></i>
+                 <span>Dashboard</span>
+            </div>
+            <div class="menu-item" onclick="navigate('../Dashboard/profilepage.html')">
+                <i class="fa fa-user"></i>
+                <span>Profile</span>
+            </div>
+            <div class="menu-item" onclick="navigate('../Dashboard/propertiespage.html')">
+                <i class="fa fa-id-card"></i>
+                <span>My Properties</span>
+            </div>
+            <div class="menu-item" onclick="navigate('payment-profile.html')">
+                <i class="fa fa-history"></i>
+                <span>Payment History</span>
+            </div>
+            <div class="menu-item" onclick="navigate('../index.html')">
+                <i class="fa fa-power-off"></i>
+                <span>Logout</span>
+            </div>
+        </div>
+    </div>
+    <div id="main-content" class="main-content">
+        <div class="dashboard-container">
+            <div class="section-title">
+                <i class="fa fa-tachometer-alt"></i> Dashboard
+            </div>
+            <a style="font-size: 22px; color: black; font-weight: bold;">You are a </a>
+            <div class="buttons">
+                <a href="./Dashboard/addproperty.html" id="owner-button"><i class="fa fa-home"></i>Owner</a>
+                <a href="./Dashboard/tenant.html" id="tenant-button"><i class="fa fa-user"></i>Tenant</a>
+            </div>
+        </div>                    
+        <h5 style="font-weight: bold;">Current Properties</h5>
+        <div id="dynamic-content">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const menuIcon = document.querySelector('.menu-icon');
+        sidebar.classList.toggle('closed');
+        mainContent.classList.toggle('sidebar-closed');
+        menuIcon.classList.toggle('open');
+    }
+
+    function navigate(url) {
+        window.location.href = url;
+    }
+
+    function loadContent(page) {
+        const contentContainer = document.getElementById('dynamic-content');
+        fetch(page)
+            .then(response => response.text())
+            .then(data => {
+                contentContainer.innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error loading content:', error);
+                contentContainer.innerHTML = '<p>Error loading content. Please try again later.</p>';
+            });
+    }
+
+    function initializeSidebar() {
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                if (url) navigate(url);
+            });
+        });
+    }
+
+    function loadPropertyData() {
+        fetch('http://localhost:4000/api/properties')
+            .then(response => response.json())
+            .then(properties => {
+                displayProperties(properties);
+            })
+            .catch(error => {
+                document.getElementById('dynamic-content').innerHTML = '<p>Error fetching properties. Please try again later.</p>';
+            });
+    }
+
+    function displayProperties(properties) {
+        const container = document.getElementById('dynamic-content');
+        if (Array.isArray(properties) && properties.length > 0) {
+            container.innerHTML = `
+                <div class="row">
+            ${properties.map(property => `
+                <div class="col-lg-4 col-md-6 mb-4">
+                <div class="property-item rounded overflow-hidden">
+            <div class="position-relative overflow-hidden">
+                <img class="img-fluid" src="${property.photos[0]}" alt="${property.building}">
+            </div>
+            <div class="p-4 pb-0">
+                <h6 class="text-primary mb-3">₹ ${property.rent.toLocaleString()}</h6>
+                <div class="property-header d-flex justify-content-between">
+                    <a class="property-name" href="#">${property.building}</a>
+                    <p class="property-location">
+                        <i class="fa fa-map-marker-alt text-primary"></i> ${property.location}
+                    </p>
+                </div>
+                <div class="short-details">
+                    <div class="short-detail-item">
+                        <strong>Size:</strong> ${property.size}
+                    </div>
+                    <div class="short-detail-item">
+                        <strong>Area:</strong> ${property.area} Sqft
+                    </div>
+                    <div class="short-detail-item">
+                        <strong>Face:</strong> ${property.face}
+                    </div>
+                </div>
+                <div class="more-details">
+                    <p><strong>Type:</strong> ${property.type}</p>
+                    <p><strong>Location:</strong> ${property.location}</p>
+                    <p><strong>Building:</strong> ${property.building}</p>
+                    <p><strong>Building Details:</strong> ${property.buildingDetails}</p>
+                    <p><strong>Advance:</strong> ₹${property.advance.toLocaleString()}</p>
+                    <p><strong>Inner Facilities:</strong> ${property.innerFacilities}</p>
+                    <p><strong>Nearby Facilities:</strong> ${property.nearbyFacilities}</p>
+                </div>
+                <button class="show-details-btn" onclick="toggleDetails(this)">More Details</button>
+            </div>
+        </div>
+
+        </div>
+    `).join('')}
+</div>
+
+            `;
+        } else {
+            container.innerHTML = '<p>No properties available at the moment.</p>';
+        }
+    }
+
+    function toggleDetails(button) {
+        const propertyItem = button.closest('.property-item');
+        const moreDetails = propertyItem.querySelector('.more-details');
+        const isVisible = moreDetails.style.display === 'block';
+        
+        moreDetails.style.display = isVisible ? 'none' : 'block';
+        button.textContent = isVisible ? 'More Details' : 'Hide Details';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeSidebar();
+        loadPropertyData();
+    });
+</script>
+</body>
+</html> 

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sign Up</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa; 
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .auth-box {
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            max-width: 650px;
+            width: 100%;
+        }
+        .auth-box h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .auth-box .form-check {
+            margin-bottom: 10px;
+        }
+        .auth-box .form-check-label {
+            margin-left: 5px;
+        }
+        .auth-box .login-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .error-message {
+            color: #dc3545; /* Bootstrap's danger color */
+            font-size: 0.875em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-box">
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <div class="mb-3">
+                    <label for="signupUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="signupUsername" required>
+                </div>
+                <div class="mb-3">
+                    <label for="signupEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="signupEmail" required>
+                </div>
+                <div class="mb-3">
+                    <label for="signupPhone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="signupPhone" required>
+                </div>
+                <div class="mb-3">
+                    <label for="signupPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="signupPassword" required>
+                </div>
+                <div class="mb-3">
+                    <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="signupConfirmPassword" required>
+                    <div id="passwordError" class="error-message"></div> <!-- Error message for password validation -->
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                <span class="login-link" style="color: #00B98E;" onclick="location.href='signin.html'">Already have an account? Sign In here</span>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+    
+            // Collect form values
+            const username = document.getElementById('signupUsername').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    
+            let errorMessage = '';
+    
+            // Validate passwords
+            if (password !== confirmPassword) {
+                errorMessage = 'Passwords do not match.';
+            } else {
+                // Validate password format
+                const passwordRegex = /^(?=.*\d)(?=.*[a-zA-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+                if (!passwordRegex.test(password)) {
+                    errorMessage = 'Password must be at least 8 characters long, contain a number, a letter, and a special character.';
+                }
+            }
+    
+            // Display error message if any
+            const passwordErrorElement = document.getElementById('passwordError');
+            passwordErrorElement.textContent = errorMessage;
+    
+            if (!errorMessage) {
+                try {
+                    const response = await fetch('http://localhost:4000/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username,
+                            email,
+                            phoneNumber: phone,
+                            password
+                        }),
+                    });
+    
+                    const result = await response.json();
+    
+                    if (response.ok) {
+                        localStorage.setItem('token', result.token); // Store token
+                        window.location.href = './dashboardhome.html'; // Redirect on success
+                    } else {
+                        // Display server-side validation or error message
+                        alert(`Error: ${result.message || 'An error occurred during registration.'}`);
+                    }
+                } catch (error) {
+                    console.error('Error during registration:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                }
+            }
+        });
+    </script>    
+</body>
+</html>

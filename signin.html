@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .signin-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .signin-box {
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            max-width: 550px;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .signin-box h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .signin-box .form-check {
+            margin-bottom: 10px;
+        }
+        .signin-box .form-check-label {
+            margin-left: 5px;
+        }
+        .signin-box .register-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="signin-container">
+        <div class="signin-box">
+            <h2>Sign In</h2>
+            <form id="signinForm">
+                <div class="mb-3">
+                    <label for="contact" class="form-label">Email or Phone Number</label>
+                    <input type="text" class="form-control" id="contact" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                <a href="signup.html" class="register-link">Don't have an account? Register here</a>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('signinForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Retrieve form values
+            const contact = document.getElementById('contact').value;
+            const password = document.getElementById('password').value;
+        
+            try {
+                const response = await fetch('http://localhost:4000/signin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ contact, password })
+                });
+        
+                const result = await response.json();
+        
+                if (response.ok) {
+                    localStorage.setItem('token', result.token);
+                    window.location.href = './dashboardhome.html';
+                } else {
+                    alert(result.message || 'An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An unexpected error occurred. Please try again.');
+            }
+        });
+        </script>
+        
+</body>
+</html>

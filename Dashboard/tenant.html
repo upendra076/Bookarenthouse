@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./dashboard.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Property Dashboard</title>
+    <style>
+        .main-content {
+            background-color: #f5f7f9;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            padding-top: 20px;
+            /* font-weight: bold; */
+        }
+
+        .filter-form-container {
+            max-width: 100%;
+            margin: 0 auto 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .filter-form > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-form label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .filter-form select,
+        .filter-form input[type="text"],
+        .filter-form input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .filter-form button {
+            padding: 10px 20px;
+            background-color: #26bb58;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            min-width: 100px;
+            margin-top: 24px;
+        }
+
+        .filter-form button:hover {
+            background-color: #0056b3;
+        }
+
+
+        .property-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .property-item {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex: 1 1 300px;
+            max-width: 300px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .property-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .property-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .property-item h4 {
+            font-size: 1.25rem;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .property-item p {
+            margin: 5px 0;
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .more-details {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .show-details-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .show-details-btn:hover {
+            background-color: #0056b3;
+        }
+       
+    </style>
+</head>
+
+<body>
+    <div class="sidebar" id="sidebar-placeholder"></div>
+    <div class="header" id="header-placeholder"></div>
+    <div class="main-content" id="main-content">
+        <div class="container">
+            <h5><i class="fas fa-filter"></i> Filter your choice</h5>        
+             <div class="filter-form-container">
+                <div class="filter-form">
+                    <div>
+                        <label for="location">Location:</label>
+                        <input type="text" id="location" name="location" placeholder="Enter location">
+                    </div>
+
+                    <div>
+                        <label for="property-type">Property Type:</label>
+                        <select id="property-type" name="property-type">
+                            <option value="">Select Property Type</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="residential">Residential</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="size">Size:</label>
+                        <select id="size" name="size">
+                            <option value="">Select Size</option>
+                            <!-- Options will be dynamically populated -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="rent">Rent (in ₹):</label>
+                        <input type="number" id="rent" name="rent" placeholder="Enter max rent">
+                    </div>
+
+                    <button type="button" id="apply-filters">Apply Filters</button>
+                </div>
+            </div>
+
+            <div class="property-list" id="filtered-properties"></div>
+        </div>
+       </div>
+
+    <script>
+        async function loadHeader() {
+            try {
+                const sidebarResponse = await fetch('./sidebar.html');
+                const sidebarData = await sidebarResponse.text();
+                document.getElementById('sidebar-placeholder').innerHTML = sidebarData;
+                initializeSidebar(); // Initialize after loading sidebar
+                
+                const headerResponse = await fetch('./header.html');
+                const headerData = await headerResponse.text();
+                document.getElementById('header-placeholder').innerHTML = headerData;
+                initializeHeader(); // Initialize after loading header
+            } catch (error) {
+                console.error('Error loading sidebar or header:', error);
+            }
+        }
+
+        function initializeSidebar() {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    if (url) {
+                        navigate(url);
+                    }
+                });
+            });
+        }
+
+        async function loadAllProperties() {
+            try {
+                const response = await fetch('http://localhost:4000/api/properties');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const properties = await response.json();
+                displayFilteredProperties(properties);
+            } catch (error) {
+                console.error('Error fetching properties:', error);
+                document.getElementById('filtered-properties').innerHTML = '<p>Error fetching properties. Please try again later.</p>';
+            }
+        }
+
+        function displayFilteredProperties(properties) {
+            const container = document.getElementById('filtered-properties');
+            if (Array.isArray(properties) && properties.length > 0) {
+                container.innerHTML = properties.map(property => {
+                    return `
+                        <div class="property-item">
+                        <img class="img-fluid" src="${property.photos[0]}" alt="${property.building}">
+                            <h4>${property.building}</h4>
+                            <p><strong>₹ ${property.rent.toLocaleString()}</strong></p>
+                            <p><i class="fa fa-map-marker-alt"></i> ${property.location}</p>
+                            <div class="short-details">
+                                <p><strong>Size:</strong> ${property.size}</p>
+                                <p><strong>Area:</strong> ${property.area} Sqft</p>
+                                <p><strong>Face:</strong> ${property.face}</p>
+                            </div>
+                            <div class="more-details">
+                                <p><strong>Type:</strong> ${property.type}</p>
+                                <p><strong>Location:</strong> ${property.location}</p>
+                                <p><strong>Building:</strong> ${property.building}</p>
+                                <p><strong>Building Details:</strong> ${property.buildingDetails}</p>
+                                <p><strong>Advance:</strong> ₹${property.advance.toLocaleString()}</p>
+                                <p><strong>Inner Facilities:</strong> ${property.innerFacilities}</p>
+                                <p><strong>Nearby Facilities:</strong> ${property.nearbyFacilities}</p>
+                            </div>
+                            <button class="show-details-btn" onclick="toggleDetails(this)">More Details</button>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<p>No properties match your criteria.</p>';
+            }
+        }
+
+        function toggleDetails(button) {
+            const propertyItem = button.closest('.property-item');
+            const moreDetails = propertyItem.querySelector('.more-details');
+            const isVisible = moreDetails.style.display === 'block';
+            
+            moreDetails.style.display = isVisible ? 'none' : 'block';
+            button.textContent = isVisible ? 'More Details' : 'Hide Details';
+        }
+
+        function updateSizeOptions(propertyType) {
+            const sizeSelect = document.getElementById('size');
+            let options = [];
+            if (propertyType === 'commercial') {
+                options = [
+                    { value: '', text: 'Select Size' },
+                    { value: 'shutter', text: 'Shutter' },
+                    { value: 'office', text: 'Office' },
+                    { value: 'shop', text: 'Shop' }
+                ];
+            } else if (propertyType === 'residential') {
+                options = [
+                    { value: '', text: 'Select Size' },
+                    { value: '1rk', text: '1RK' },
+                    { value: '1bhk', text: '1BHK' },
+                    { value: '2bhk', text: '2BHK' },
+                    { value: '3bhk', text: '3BHK' },
+                    { value: 'duplex', text: 'Duplex' }
+                ];
+            } else {
+                options = [
+                    { value: '', text: 'Select Size' }
+                ];
+            }
+            sizeSelect.innerHTML = '';
+            options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.text = option.text;
+                sizeSelect.add(opt);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHeader();
+            loadAllProperties();
+
+            const propertyTypeSelect = document.getElementById('property-type');
+            propertyTypeSelect.addEventListener('change', () => {
+                const selectedType = propertyTypeSelect.value;
+                updateSizeOptions(selectedType);
+            });
+
+            document.getElementById('apply-filters').addEventListener('click', async (event) => {
+                
+                window.scrollTo({ top: 280, behavior: 'smooth' });
+                
+                const location = document.getElementById('location').value.trim().toLowerCase();
+                const propertyType = document.getElementById('property-type').value.toLowerCase();
+                const size = document.getElementById('size').value.toLowerCase();
+                const maxRent = parseInt(document.getElementById('rent').value) || Infinity;
+
+                try {
+                    const response = await fetch('http://localhost:4000/api/properties');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const properties = await response.json();
+                    
+                    const filteredProperties = properties.filter(property => {
+                        return (
+                            (location === '' || property.location.toLowerCase().includes(location)) &&
+                            (propertyType === '' || property.type.toLowerCase() === propertyType) &&
+                            (size === '' || property.size.toLowerCase() === size) &&
+                            property.rent <= maxRent
+                        );
+                    });
+
+                    displayFilteredProperties(filteredProperties);
+                } catch (error) {
+                    console.error('Error fetching properties:', error);
+                    document.getElementById('filtered-properties').innerHTML = '<p>Error fetching properties. Please try again later.</p>';
+                }
+            });
+        });
+
+    </script>
+    <script src="./dashboard.js"></script>
+</body>
+
+</html>

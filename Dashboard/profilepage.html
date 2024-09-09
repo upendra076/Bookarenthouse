@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="./dashboard.css">
+
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+        }
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .profile-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .profile-item label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+            color: #555;
+        }
+        .profile-item input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .profile-item input:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+        .profile-item input[readonly] {
+            background-color: #f8f8f8;
+            cursor: not-allowed;
+        }
+        .profile-item .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .profile-item .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .profile-item .actions button.save {
+            background-color: #28a745;
+        }
+        .profile-item .actions button.save:hover {
+            background-color: #218838;
+        }
+        .profile-item .actions button.cancel {
+            background-color: #dc3545;
+        }
+        .profile-item .actions button.cancel:hover {
+            background-color: #c82333;
+        }
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .button-container button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .button-container .call-us-btn {
+            background-color: #28a745;
+        }
+        .button-container .call-us-btn:hover {
+            background-color: #218838;
+        }
+        .button-container .support-btn {
+            background-color: #17a2b8;
+        }
+        .button-container .support-btn:hover {
+            background-color: #117a8b;
+        }
+        #error-message {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .expandable-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fafafa;
+            margin-top: 10px;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+        }
+        .expandable-container.show {
+            max-height: 500px; /* Adjust based on the content height */
+            opacity: 1;
+        }
+        .expand-btn {
+            cursor: pointer;
+            font-weight: 600;
+            color: #007BFF;
+            border: none;
+            background: none;
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .expand-btn:hover {
+            color: #0056b3;
+        }
+        .expand-btn:focus {
+            outline: none;
+        }
+        .expand-btn.active {
+            color: #0056b3;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar-placeholder"></div>
+    <!-- </div> -->
+    <div class="header" id="header-placeholder"></div>
+
+    <div class="main-content" id="main-content">
+        <div class="container">
+            <h5><i class="fas fa-user"></i> Your Profile</h5>        
+        <div class="profile-container">
+        <div id="profile-info">
+        </div>
+        <div id="error-message">
+        </div>
+        <div class="button-container">
+            <button class="support-btn" onclick="showSupport()">Help & Support</button>
+            <button class="call-us-btn" onclick="callUs()">Call Us</button>
+           
+        </div>
+    </div>
+
+    <script>
+        async function loadHeader() {
+            try {
+                // Load and insert sidebar
+                const sidebarResponse = await fetch('./sidebar.html');
+                const sidebarData = await sidebarResponse.text();
+                document.getElementById('sidebar-placeholder').innerHTML = sidebarData;
+                initializeSidebar(); // Initialize sidebar functionality
+    
+                // Load and insert header
+                const headerResponse = await fetch('./header.html');
+                const headerData = await headerResponse.text();
+                document.getElementById('header-placeholder').innerHTML = headerData;
+                initializeHeader(); // Initialize header functionality
+            } catch (error) {
+                console.error('Error loading sidebar or header:', error);
+            }
+        }
+    
+        function initializeSidebar() {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const url = item.getAttribute('data-url');
+                    if (url) navigate(url);
+                });
+            });
+        }
+    
+        function getToken() {
+            return localStorage.getItem('token'); // Retrieve JWT token from localStorage
+        }
+    
+        async function fetchUserDetails() {
+            const token = getToken();
+            if (!token) {
+                displayError('No token found. Please log in again.');
+                return;
+            }
+    
+            try {
+                const response = await fetch('http://localhost:4000/user-details', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    const user = data.user || {};
+                    displayUserDetails(user);
+                } else {
+                    handleFetchError(response);
+                }
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                displayError('An unexpected error occurred. Please try again later.');
+            }
+        }
+    
+        function displayUserDetails(user) {
+            const profileHtml = `
+                <div class="profile-item">
+                    <label>Username:</label>
+                    <input type="text" value="${user.username || 'N/A'}" readonly>
+                </div>
+                <div class="profile-item">
+                    <label>Email:</label>
+                    <input type="email" value="${user.email || 'N/A'}" readonly>
+                </div>
+                <div class="profile-item">
+                    <label>Phone Number:</label>
+                    <input type="tel" value="${user.phoneNumber || 'N/A'}" readonly>
+                </div>
+                <div class="profile-item">
+                    <label>PAN Number:</label>
+                    <input type="text" id="panNumber" value="${user.panNumber || 'N/A'}" oninput="toggleSaveCancelButtons('panNumber')">
+                    <div class="actions pan-actions" style="display: none;">
+                        <button class="save" onclick="saveField('panNumber')">Save</button>
+                        <button class="cancel" onclick="cancelField('panNumber')">Cancel</button>
+                    </div>
+                </div>
+                <div class="profile-item">
+                    <label>Aadhar Number:</label>
+                    <input type="text" id="aadharNumber" value="${user.aadharNumber || 'N/A'}" oninput="toggleSaveCancelButtons('aadharNumber')">
+                    <div class="actions aadhar-actions" style="display: none;">
+                        <button class="save" onclick="saveField('aadharNumber')">Save</button>
+                        <button class="cancel" onclick="cancelField('aadharNumber')">Cancel</button>
+                    </div>
+                </div>
+                <div class="profile-item">
+                    <label>Bank Account:</label>
+                    <input type="text" id="bankAccount" value="${user.bankDetails?.bankName || 'N/A'}" readonly oninput="toggleBankActions()">
+                    <button class="expand-btn" onclick="toggleBankDetails()">Expand ▼</button>
+                    <div class="expandable-container" id="bankDetails">
+                        <div class="profile-item">
+                            <label>Bank Name:</label>
+                            <input type="text" id="bankName" value="${user.bankDetails?.bankName || 'N/A'}">
+                        </div>
+                        <div class="profile-item">
+                            <label>IFSC:</label>
+                            <input type="text" id="ifsc" value="${user.bankDetails?.ifsc || 'N/A'}">
+                        </div>
+                        <div class="profile-item">
+                            <label>Account Holder Name:</label>
+                            <input type="text" id="accountHolderName" value="${user.bankDetails?.accountHolderName || 'N/A'}">
+                        </div>
+                        <div class="profile-item">
+                            <label>Branch:</label>
+                            <input type="text" id="branch" value="${user.bankDetails?.branch || 'N/A'}">
+                        </div>
+                        <div class="actions bank-actions" style="display: none;">
+                            <button class="save" onclick="saveBankDetails()">Save</button>
+                            <button class="cancel" onclick="cancelBankDetails()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('profile-info').innerHTML = profileHtml;
+            document.getElementById('error-message').innerHTML = ''; // Clear previous error messages
+        }
+    
+        function displayError(message) {
+            document.getElementById('profile-info').innerHTML = '';
+            document.getElementById('error-message').innerHTML = `<p>${message}</p>`;
+        }
+    
+        async function saveField(fieldId) {
+            const token = getToken();
+            if (!token) {
+                displayError('No token found. Please log in again.');
+                return;
+            }
+    
+            const value = document.getElementById(fieldId).value;
+            const field = fieldId === 'panNumber' ? 'panNumber' : 'aadharNumber';
+    
+            try {
+                const response = await fetch('http://localhost:4000/update-profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ [field]: value })
+                });
+    
+                if (response.ok) {
+                    alert('Field saved successfully!');
+                    fetchUserDetails(); // Refresh user details
+                } else {
+                    const errorText = await response.text();
+                    displayError(`Failed to save field: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error saving field:', error);
+                displayError('An unexpected error occurred while saving the field. Please try again later.');
+            }
+        }
+    
+        function cancelField(fieldId) {
+            document.getElementById(fieldId).value = document.getElementById(fieldId).getAttribute('data-original-value');
+        }
+    
+        async function saveBankDetails() {
+            const token = getToken();
+            if (!token) {
+                displayError('No token found. Please log in again.');
+                return;
+            }
+    
+            const userDetails = {
+                bankDetails: {
+                    bankAccount: document.getElementById('bankAccount').value,
+                    bankName: document.getElementById('bankName').value,
+                    ifsc: document.getElementById('ifsc').value,
+                    accountHolderName: document.getElementById('accountHolderName').value,
+                    branch: document.getElementById('branch').value
+                }
+            };
+    
+            try {
+                const response = await fetch('http://localhost:4000/update-profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userDetails)
+                });
+    
+                if (response.ok) {
+                    alert('Bank details saved successfully!');
+                    document.getElementById('bankDetails').classList.remove('show');
+                    document.querySelector('.expand-btn').textContent = 'Expand ▼';
+                    document.getElementById('bankAccount').readOnly = true;
+                } else {
+                    const errorText = await response.text();
+                    displayError(`Failed to save bank details: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error saving bank details:', error);
+                displayError('An unexpected error occurred while saving bank details. Please try again later.');
+            }
+        }
+    
+        function cancelBankDetails() {
+            fetchUserDetails(); // Re-fetches user details to discard unsaved changes
+        }
+    
+        function toggleSaveCancelButtons(fieldId) {
+            const value = document.getElementById(fieldId).value.trim();
+            const actionsDiv = document.querySelector(`.${fieldId === 'panNumber' ? 'pan-actions' : 'aadhar-actions'}`);
+            actionsDiv.style.display = value ? 'flex' : 'none';
+        }
+    
+        function toggleBankActions() {
+            const bankActions = document.querySelector('.bank-actions');
+            const bankAccountValue = document.getElementById('bankAccount').value.trim();
+            bankActions.style.display = bankAccountValue && !document.getElementById('bankAccount').readOnly ? 'flex' : 'none';
+        }
+    
+        function toggleBankDetails() {
+            const bankDetails = document.getElementById('bankDetails');
+            const expandBtn = document.querySelector('.expand-btn');
+            const isExpanded = bankDetails.classList.contains('show');
+    
+            bankDetails.classList.toggle('show', !isExpanded);
+            expandBtn.textContent = isExpanded ? 'Expand ▼' : 'Collapse ▲';
+            document.getElementById('bankAccount').readOnly = isExpanded;
+    
+            toggleBankActions(); // Update bank actions visibility
+        }
+    
+        function showSupport() {
+            alert('Support functionality not implemented yet.');
+        }
+    
+        function callUs() {
+            alert('Call us functionality not implemented yet.');
+        }
+    
+        function handleFetchError(response) {
+            if (response.status === 404) {
+                displayError('User not found. Please check your credentials or log in again.');
+            } else if (response.status === 401) {
+                displayError('Unauthorized. Please log in again.');
+            } else {
+                response.text().then(errorText => displayError(`Failed to fetch user details: ${errorText}`));
+            }
+        }
+    
+        window.onload = async () => {
+            await loadHeader();
+            await fetchUserDetails();
+        };
+    
+        document.getElementById('toggle-sidebar').addEventListener('click', () => {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+    </script>
+    
+    <script src="./dashboard.js"></script>
+</body>
+</html>

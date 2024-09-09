@@ -1,0 +1,52 @@
+<!-- sidebar.html -->
+<div id="sidebar" class="sidebar-container open">
+    <div class="sidebar-menu">
+        <div class="menu-item" data-url="../dashboardhome.html">
+            <i class="fa fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="menu-item" data-url="../Dashboard/profilepage.html">
+            <i class="fa fa-user"></i>
+            <span>Profile</span>
+        </div>
+        <div class="menu-item" data-url="../Dashboard/propertiespage.html">
+            <i class="fa fa-id-card"></i>
+            <span>My Properties</span>
+        </div>
+        <div class="menu-item" data-url="payment-profile.html">
+            <i class="fa fa-history"></i>
+            <span>Payment History</span>
+        </div>
+        <div class="menu-item" data-url="../index.html">
+            <i class="fa fa-power-off"></i>
+            <span>Logout</span>
+        </div>
+    </div>
+</div>
+<script>
+    function initializeSidebar() {
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    loadContent(url);  // Load content dynamically
+                }
+            });
+        });
+    }
+
+    function loadContent(page) {
+        fetch(page)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('main-content').innerHTML = data;
+                // You might also need to reinitialize scripts or other dynamic elements in the loaded content
+            })
+            .catch(error => {
+                console.error('Error loading content:', error);
+                document.getElementById('main-content').innerHTML = '<p>Error loading content. Please try again later.</p>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeSidebar);
+</script>
